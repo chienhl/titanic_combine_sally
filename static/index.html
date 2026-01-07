@@ -201,7 +201,7 @@
   
       let data;
       try {
-        const res = await fetch("/titanic", { cache: "no-store" });
+        const res = await fetch("http://localhost:5000/titanic", { cache: "no-store" });
         if (!res.ok) throw new Error("HTTP " + res.status);
         data = await res.json();
         allData = data;

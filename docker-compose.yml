@@ -26,7 +26,17 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./python_folder:/app   # ✔ 這樣就可以直接看到你改的 HTML
+      - ./python_folder:/app   
+
+  frontend:
+    image: nginx:alpine
+    container_name: titanic_frontend
+    ports:    
+      - "8080:80"
+    volumes:
+      - ./static:/usr/share/nginx/html:ro
+    depends_on:
+      - python_app
 
 volumes:
   mysql_data:
