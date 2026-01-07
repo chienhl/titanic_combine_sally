@@ -1,0 +1,23 @@
+[33mcommit ef2d122217fe07bb85ebcae05bcefacab5186656[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: sally <sally31808900@gmail.com>
+Date:   Wed Jan 7 23:39:56 2026 +0800
+
+    因移動static/index.html，因此微調index.html + docker-compose.yml + Dockerfile
+
+[33mcommit f6c0aade9b9de443b6447beb3bbff7764588de35[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: sally <sally31808900@gmail.com>
+Date:   Wed Jan 7 17:34:48 2026 +0800
+
+    上傳檔案
+
+[33mcommit 5de4f143a6745675d5f1cab0d58c9a242fa3c0fa[m
+Author: chienhl <sally31808900@gmail.com>
+Date:   Wed Jan 7 14:36:15 2026 +0800
+
+    Update README.md
+
+[33mcommit 9201a5e5e7b55ff9596d16a5ce56b191430432c1[m
+Author: chienhl <sally31808900@gmail.com>
+Date:   Wed Jan 7 14:17:19 2026 +0800
+
+    Initial commit
