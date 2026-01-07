@@ -1,0 +1,32 @@
+services:
+  db:
+    image: mysql:8.0.44
+    container_name: mysql8
+    environment:
+      MYSQL_ROOT_PASSWORD: "0000"
+      MYSQL_DATABASE: titanic
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p0000 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  python_app:
+    build:
+      context: ./python_folder
+    image: python3_image01
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./python_folder:/app   # ✔ 這樣就可以直接看到你改的 HTML
+
+volumes:
+  mysql_data:

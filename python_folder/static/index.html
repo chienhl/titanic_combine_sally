@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Titanic Passenger Table</title>
+  <style>
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg,#f5f3ff,#eef2ff,#fdf2f8);
+      color:#111;
+    }
+    .container{
+      max-width:1200px;
+      margin:0 auto;
+      padding:20px;
+    }
+    h1{
+      text-align:center;
+      margin-bottom:16px;
+      color:#4c1d95;
+    }
+    .card{
+      background:#fff;
+      border:1px solid #e9d5ff;
+      border-radius:12px;
+      box-shadow:0 6px 20px rgba(99,102,241,.15);
+      padding:16px;
+    }
+    .controls{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .filter-group{
+      display:flex;
+      align-items:flex-end;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .filter-group label{
+      display:flex;
+      flex-direction:column;
+      font-size:12px;
+      color:#6d28d9;
+    }
+    .filter-group input,
+    .filter-group select{
+      padding:6px 8px;
+      border-radius:8px;
+      border:1px solid #ddd;
+      min-width:120px;
+    }
+    .actions{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-size:13px;
+      color:#4c1d95;
+    }
+    .btn{
+      padding:8px 14px;
+      border:none;
+      border-radius:10px;
+      cursor:pointer;
+      background: linear-gradient(135deg,#6366f1,#a855f7);
+      color:white;
+      font-size:14px;
+    }
+    .btn:hover{ opacity:.9; }
+    .status{
+      font-size:13px;
+      color:#4c1d95;
+      margin-bottom:8px;
+    }
+    .table-wrap{
+      border:1px solid #ddd6fe;
+      border-radius:10px;
+      overflow:auto;
+      max-height:70vh;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:1000px;
+    }
+    th, td{
+      padding:8px 10px;
+      font-size:13px;
+      border-bottom:1px solid #eee;
+      text-align:center;
+      white-space:nowrap;
+    }
+    th{
+      position:sticky;
+      top:0;
+      background: linear-gradient(135deg,#4f46e5,#9333ea);
+      color:white;
+      z-index:1;
+    }
+    tr:nth-child(even){
+      background:#faf5ff;
+    }
+    .hint{
+      font-size:12px;
+      color:#6d28d9;
+      text-align:center;
+      margin-top:10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🛳️ Titanic 乘客資料（共 1309 筆）</h1>
+
+    <div class="card">
+      <div class="controls">
+        <div class="filter-group">
+          <label>
+            姓名
+            <input id="filterName" placeholder="Name...">
+          </label>
+
+          <label>
+            性別
+            <select id="filterSex">
+              <option value="">全部</option>
+              <option value="male">男</option>
+              <option value="female">女</option>
+            </select>
+          </label>
+
+          <button class="btn" id="applyFilter">篩選</button>
+        </div>
+
+        <div class="actions">
+          <span id="count">筆數：-</span>
+          <button class="btn" id="reload">重新載入</button>
+        </div>
+      </div>
+
+      <div class="status" id="status">狀態：等待載入</div>
+
+      <div class="table-wrap">
+        <table>
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- <div class="hint">已採用「分批渲染」避免一次顯示 1309 筆資料造成卡頓</div> -->
+    </div>
+  </div>
+
+  <script>
+    const theadEl  = document.getElementById("thead");
+    const tbodyEl  = document.getElementById("tbody");
+    const countEl  = document.getElementById("count");
+    const statusEl = document.getElementById("status");
+    const reloadBtn= document.getElementById("reload");
+  
+    const filterNameEl = document.getElementById("filterName");
+    const filterSexEl  = document.getElementById("filterSex");
+    const applyFilterBtn = document.getElementById("applyFilter");
+  
+    let allData = [];
+  
+    function escapeHtml(v){
+      const s = String(v ?? "");
+      return s.replaceAll("&","&amp;")
+              .replaceAll("<","&lt;")
+              .replaceAll(">","&gt;")
+              .replaceAll('"',"&quot;")
+              .replaceAll("'","&#39;");
+    }
+  
+    function getFilteredData(){
+      const name = filterNameEl.value.toLowerCase().trim();
+      const sex  = filterSexEl.value.toLowerCase().trim();
+
+      return allData.filter(row=>{
+        const rowName = String(row.pname ?? "").toLowerCase().trim();
+        const rowSex  = String(row.sex ?? "").toLowerCase().trim();
+
+        const matchName = !name || rowName.includes(name);
+        const matchSex  = !sex || rowSex === sex;
+
+        return matchName && matchSex;
+      });
+    }
+  
+    async function loadAll() {
+      theadEl.innerHTML = "";
+      tbodyEl.innerHTML = "";
+      countEl.textContent = "筆數：載入中...";
+      statusEl.textContent = "狀態：向後端請求 /titanic ...";
+  
+      let data;
+      try {
+        const res = await fetch("/titanic", { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        data = await res.json();
+        allData = data;
+      } catch (err) {
+        statusEl.textContent = "狀態：載入失敗（" + err.message + "）";
+        return;
+      }
+  
+      const dataToRender = getFilteredData();
+      countEl.textContent = `筆數：${dataToRender.length}`;
+  
+      if (dataToRender.length === 0) {
+        theadEl.innerHTML = "<tr><th>結果</th></tr>";
+        tbodyEl.innerHTML = "<tr><td>沒有符合條件的資料</td></tr>";
+        return;
+      }
+  
+      const cols = Object.keys(dataToRender[0]);
+      theadEl.innerHTML =
+        "<tr>" + cols.map(c => `<th>${escapeHtml(c)}</th>`).join("") + "</tr>";
+  
+      const chunkSize = 200;
+      let i = 0;
+  
+      function renderChunk() {
+        const chunk = dataToRender.slice(i, i + chunkSize);
+        let html = "";
+  
+        for (const row of chunk) {
+          html += "<tr>" + cols.map(c => `<td>${escapeHtml(row[c])}</td>`).join("") + "</tr>";
+        }
+        tbodyEl.insertAdjacentHTML("beforeend", html);
+  
+        i += chunkSize;
+        statusEl.textContent = `狀態：渲染中... (${Math.min(i, dataToRender.length)}/${dataToRender.length})`;
+  
+        if (i < dataToRender.length) {
+          requestAnimationFrame(renderChunk);
+        } else {
+          statusEl.textContent = "狀態：完成";
+        }
+      }
+  
+      renderChunk();
+    }
+  
+    function resetFilters(){
+      filterNameEl.value = "";
+      filterSexEl.value = "";
+    }
+
+    
+    reloadBtn.addEventListener("click", () => {
+      resetFilters();
+      loadAll();
+    });
+    applyFilterBtn.addEventListener("click", loadAll);
+
+    // 當在姓名輸入欄按下 Enter 時，自動篩選
+    filterNameEl.addEventListener("keyup", (e) => {
+      if (e.key === "Enter") {
+        loadAll();
+      }
+    });
+
+    loadAll();
+  </script>
+</body>
+</html>
