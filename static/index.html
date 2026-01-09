@@ -166,6 +166,9 @@
     const filterNameEl = document.getElementById("filterName");
     const filterSexEl  = document.getElementById("filterSex");
     const applyFilterBtn = document.getElementById("applyFilter");
+
+    const serverIp = window.location.hostname;
+
   
     let allData = [];
   
@@ -201,7 +204,7 @@
   
       let data;
       try {
-        const res = await fetch("http://localhost:5000/titanic", { cache: "no-store" });
+        const res = await fetch(`http://${serverIp}:5000/titanic`, { cache: "no-store" });
         if (!res.ok) throw new Error("HTTP " + res.status);
         data = await res.json();
         allData = data;
